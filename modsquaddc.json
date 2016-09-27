@@ -20,22 +20,6 @@
         "description": "Name prefix for the Worker Nodes."
       }
     },
-    "NumberofMasterNodes": {
-      "type": "int",
-      "minValue": 1,
-      "maxValue": 10,
-      "metadata": {
-        "description": "This is the number of master nodes."
-      }
-    },
-    "NumberofWorkerNodes": {
-      "type": "int",
-      "minValue": 1,
-      "maxValue": 10,
-      "metadata": {
-        "description": "This is the number of worker nodes."
-      }
-    },
     "VirtualNetworkName": {
       "type": "string",
       "metadata": {
@@ -78,10 +62,12 @@
   },
   "variables": {
     "apiVersion": "2015-06-15",
+    "NumberofMasterNodes": 3,
+    "NumberofWorkerNodes": 4,
     "vnetID": "[resourceId(parameters('VirtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('VirtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('SubnetName'))]",
     "MasterNodeStartIndex": 0,
-    "WorkerNodeStartIndex": "[parameters('NumberofMasterNodes')]",
+    "WorkerNodeStartIndex": "[variables('NumberofMasterNodes')]",
     "vmIndexWidth": 2,
     "adminUsername": "mladmin",
     "adminPassword": "clmAdmin4thew1n!",
