@@ -114,7 +114,7 @@
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "createMasterNodeNICs",
-        "count": "[parameters('NumberofMasterNodes')]"
+        "count": "[variables('NumberofMasterNodes')]"
       },
       "properties": {
         "ipConfigurations": [
@@ -141,7 +141,7 @@
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "createWorkerNICs",
-        "count": "[parameters('NumberofWorkerNodes')]"
+        "count": "[variables('NumberofWorkerNodes')]"
       },
       "properties": {
         "ipConfigurations": [
@@ -167,7 +167,7 @@
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "CreateMasterNodes",
-        "count": "[parameters('NumberofMasterNodes')]"
+        "count": "[variables('NumberofMasterNodes')]"
       },
       "dependsOn": [
         "createMasterNodeNICs",
@@ -262,7 +262,7 @@
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "CreateWorkerNodes",
-        "count": "[parameters('NumberofWorkerNodes')]"
+        "count": "[variables('NumberofWorkerNodes')]"
       },
       "dependsOn": [
         "createMasterNodeNICs",
