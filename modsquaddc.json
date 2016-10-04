@@ -176,10 +176,5 @@
         }
       }
     }
-  ],
-  "outputs": {
-        "ipAddress": {
-        "value": "[reference(resourceId('Microsoft.Network/networkInterfaces',concat(parameters('NodeName'),'-NIC'))).ipConfigurations[0].properties.privateIPAddress]",
-        "type": "string"
-    }
+  ]
 }
