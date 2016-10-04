@@ -2,103 +2,101 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "adminUsername": {
+    "NodeVMSize": {
+      "type": "string"
+    },
+    "NodeName": {
       "type": "string",
       "metadata": {
-        "description": "User name for the Virtual Machine."
+        "description": "Name of the Node."
       }
     },
-    "adminPassword": {
-      "type": "securestring",
-      "metadata": {
-        "description": "Password for the Virtual Machine."
-      }
-    },
-    "vmName": {
+    "AvailablitySet": {
       "type": "string",
       "metadata": {
-        "description": "Name for the Virtual Machine."
+        "description":  "Name of AvailabilitySet"
       }
+    },
+    "VirtualNetworkName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the existing VNet"
+      }
+    },
+    "VirtualNetworkResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Resource Group containing the existing VNet"
+      }
+    },
+    "SubnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the subnet in the VNet you want to use"
+      }
+    },
+    "userImageStorageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of Custom Image Storage Account"
+      }
+    },
+    "userImageStorageContainerName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of Custom Image Container"
+      }
+    },
+    "userImageVhdName": {
+      "type": "string"
+    },
+    "vmImageStorageAccountName": {
+      "type": "string"
     }
   },
   "variables": {
-    "storageAccountName": "[concat(uniquestring(parameters('vmName')), 'storage')]",
-    "dataDisk1VhdName": "[concat(uniquestring(parameters('vmName')), 'datadisk1')]",
-    "dataDisk2VhdName": "[concat(uniquestring(parameters('vmName')), 'datadisk2')]",
-    "imagePublisher": "RedHat",
-    "imageOffer": "RHEL",
-    "OSDiskName": "[concat(uniquestring(parameters('vmName')), 'osdisk')]",
-    "nicName": "[concat(uniquestring(parameters('vmName')), 'nic')]",
-    "addressPrefix": "10.0.0.0/16",
-    "subnetName": "Subnet",
-    "subnetPrefix": "10.0.0.0/24",
-    "storageAccountType": "Standard_LRS",
-    "publicIPAddressName": "[concat(uniquestring(parameters('vmName')), 'publicip')]",
-    "publicIPAddressType": "Dynamic",
-    "vmStorageAccountContainerName": "vhds",
-    "vmSize": "Standard_DS2",
-    "virtualNetworkName": "[concat(uniquestring(parameters('vmName')), 'vnet')]",
-    "vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
-    "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]"
+    "apiVersion": "2015-06-15",
+    "vnetID": "[resourceId(parameters('VirtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('VirtualNetworkName'))]",
+    "subnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('SubnetName'))]",
+    "adminUsername": "mladmin2",
+    "adminPassword": "MetLife0001!",
+    "userImageName":  "[concat('https://', parameters('userImageStorageAccountName'), '.blob.core.windows.net/', parameters('userImageStorageContainerName'), '/', parameters('userImageVhdName'))]",
+    "osDiskVhdContainer": "[concat('https://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds')]"
+    
   },
   "resources": [
     {
-      "type": "Microsoft.Storage/storageAccounts",
-      "name": "[variables('storageAccountName')]",
+      "comments": "# Node Availability Set",
+      "type": "Microsoft.Compute/availabilitySets",
+      "tags": {
+        "EAICODE": "10962"
+      },
+      "name": "[parameters('AvailablitySet')]",
       "apiVersion": "2015-06-15",
+      "tags": {
+        "EAICODE": "10962"
+      },
       "location": "[resourceGroup().location]",
       "properties": {
-        "accountType": "[variables('storageAccountType')]"
+        "platformFaultDomainCount": "3",
+        "platformUpdateDomainCount": "5"
       }
     },
     {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[variables('publicIPAddressName')]",
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "publicIPAllocationMethod": "[variables('publicIPAddressType')]"
-      }
-    },
-    {
-      "apiVersion": "2015-06-15",
-      "type": "Microsoft.Network/virtualNetworks",
-      "name": "[variables('virtualNetworkName')]",
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "addressSpace": {
-          "addressPrefixes": [
-            "[variables('addressPrefix')]"
-          ]
-        },
-        "subnets": [
-          {
-            "name": "[variables('subnetName')]",
-            "properties": {
-              "addressPrefix": "[variables('subnetPrefix')]"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "apiVersion": "2015-06-15",
+      "comments": "#Nic for Node",
+      "apiVersion": "[variables('apiVersion')]",
       "type": "Microsoft.Network/networkInterfaces",
-      "name": "[variables('nicName')]",
+      "tags": {
+        "EAICODE": "0000"
+      },
+      "name": "[concat(parameters('NodeName'), '-NIC')]",
       "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
-        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
-      ],
       "properties": {
         "ipConfigurations": [
           {
-            "name": "ipconfig1",
+            "name": "IPConfig",
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
-              "publicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
-              },
               "subnet": {
                 "id": "[variables('subnetRef')]"
               }
@@ -108,78 +106,103 @@
       }
     },
     {
-      "apiVersion": "2015-06-15",
+      "apiVersion": "[variables('apiVersion')]",
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[parameters('vmName')]",
+      "tags": {
+        "EAICODE": "10962"
+      },
+      "name": "[parameters('NodeName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
-        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'))]"
+        "[parameters('AvailablitySet')]"
       ],
       "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('AvailablitySet'))]"
+        },
         "hardwareProfile": {
-          "vmSize": "[variables('vmSize')]"
+          "vmSize": "[parameters('NodeVMSize')]"
         },
         "osProfile": {
-          "computerName": "[parameters('vmName')]",
-          "adminUsername": "[parameters('adminUsername')]",
-          "adminPassword": "[parameters('adminPassword')]"
+          "computerName": "[parameters('NodeName')]",
+          "adminUsername": "[variables('adminUsername')]",
+          "adminPassword": "[variables('adminPassword')]"
         },
         "storageProfile": {
-          "imageReference": {
-            "publisher": "[variables('imagePublisher')]",
-            "offer": "[variables('imageOffer')]",
-            "sku": "7.2",
-            "version": "latest"
-          },
-          "osDisk": {
-            "name": "osdisk",
-            "vhd": {
-              "uri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2015-06-15').primaryEndpoints.blob, variables('vmStorageAccountContainerName'),'/',variables('OSDiskName'),'.vhd')]"
-            },
-            "caching": "ReadWrite",
-            "createOption": "FromImage"
-          },
           "dataDisks": [
             {
-              "name": "datadisk1",
-              "diskSizeGB": "100",
+              "name": "[concat(parameters('NodeName'),'-DataDisk1')]",
+              "diskSizeGB": "128",
               "lun": 0,
               "vhd": {
-                "uri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2015-06-15').primaryEndpoints.blob, variables('vmStorageAccountContainerName'),'/',variables('dataDisk1VhdName'),'.vhd')]"
+                "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('NodeName'),'-datadisk1', '.vhd')]"
               },
               "createOption": "Empty"
             },
             {
-              "name": "datadisk2",
-              "diskSizeGB": "100",
+              "name": "[concat(parameters('NodeName'),'-DataDisk2')]",
+              "diskSizeGB": "128",
               "lun": 1,
               "vhd": {
-                "uri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2015-06-15').primaryEndpoints.blob, variables('vmStorageAccountContainerName'),'/',variables('dataDisk2VhdName'),'.vhd')]"
+                "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('NodeName'),'-datadisk2', '.vhd')]"
+              },
+              "createOption": "Empty"
+            },
+            {
+              "name": "[concat(parameters('NodeName'),'-DataDisk3')]",
+              "diskSizeGB": "128",
+              "lun": 2,
+              "vhd": {
+                "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('NodeName'),'-datadisk3', '.vhd')]"
+              },
+              "createOption": "Empty"
+            },
+            {
+              "name": "[concat(parameters('NodeName'),'-DataDisk4')]",
+              "diskSizeGB": "128",
+              "lun": 3,
+              "vhd": {
+                "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('NodeName'),'-datadisk4', '.vhd')]"
               },
               "createOption": "Empty"
             }
-          ]
+          ],
+          "osDisk": {
+            "name": "[concat(parameters('NodeName'),'-OSDisk')]",
+            "osType": "linux",
+            "vhd": {
+              "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('NodeName'),'-osdisk', '.vhd')]"
+            },
+            "image": {
+              "uri": "[variables('userImageName')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
         },
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces',variables('nicName'))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces/', concat(parameters('NodeName'), '-NIC'))]"
             }
           ]
         },
         "diagnosticsProfile": {
           "bootDiagnostics": {
             "enabled": "true",
-            "storageUri": "[reference(concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName')), '2015-06-15').primaryEndpoints.blob]"
+            "storageUri": "[reference(concat('Microsoft.Storage/storageAccounts/', 'modsquad'), variables('apiVersion')).primaryEndpoints.blob]"
           }
         }
       }
     }
-  ],  
+     
+    
+  ],
   "outputs": {
         "ipAddress": {
         "value": "[reference(resourceId('Microsoft.Network/networkInterfaces',concat(parameters('NodeName'),'-NIC'))).ipConfigurations[0].properties.privateIPAddress]",
         "type": "string"
     }
+
+  }
 }
