@@ -2,19 +2,38 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-    "NodeVMSize": {
+    "MasterNodeVMSize": {
       "type": "string"
     },
-    "NodeName": {
+    "WorkerNodeVMSize": {
+      "type": "string"
+    },
+    "MasterNodeNamePrefix": {
       "type": "string",
       "metadata": {
-        "description": "Name of the Node."
+        "description": "Name prefix for the Master Nodes."
       }
     },
-    "AvailablitySet": {
+    "WorkerNodeNamePrefix": {
       "type": "string",
       "metadata": {
-        "description":  "Name of AvailabilitySet"
+        "description": "Name prefix for the Worker Nodes."
+      }
+    },
+    "NumberofMasterNodes": {
+      "type": "int",
+      "minValue": 1,
+      "maxValue": 10,
+      "metadata": {
+        "description": "This is the number of master nodes."
+      }
+    },
+    "NumberofWorkerNodes": {
+      "type": "int",
+      "minValue": 1,
+      "maxValue": 10,
+      "metadata": {
+        "description": "This is the number of worker nodes."
       }
     },
     "VirtualNetworkName": {
@@ -52,26 +71,28 @@
     },
     "vmImageStorageAccountName": {
       "type": "string"
+    },
+    "bootdiagStorageAccountName": {
+      "type": "string"
     }
   },
   "variables": {
     "apiVersion": "2015-06-15",
     "vnetID": "[resourceId(parameters('VirtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('VirtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('SubnetName'))]",
-    "adminUsername": "mladmin2",
-    "adminPassword": "MetLife0001!",
-    "userImageName":  "[concat('https://', parameters('userImageStorageAccountName'), '.blob.core.windows.net/', parameters('userImageStorageContainerName'), '/', parameters('userImageVhdName'))]",
-    "osDiskVhdContainer": "[concat('https://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds')]"
-    
+    "MasterNodeStartIndex": 0,
+    "WorkerNodeStartIndex": "[parameters('NumberofMasterNodes')]",
+    "vmIndexWidth": 2,
+    "adminUsername": "mladmin",
+    "adminPassword": "xxxxxxxxxx",
+    "userImageName": "https://modsquadprm.blob.core.windows.net/images/METRHEL72Docker.vhd",
+    "osDiskVhdContainer": "https://modsquadprm.blob.core.windows.net/vhds/"
   },
   "resources": [
     {
-      "comments": "# Node Availability Set",
+      "comments": "# Master Node Availability Set",
       "type": "Microsoft.Compute/availabilitySets",
-      "tags": {
-        "EAICODE": "10962"
-      },
-      "name": "[parameters('AvailablitySet')]",
+      "name": "[concat(parameters('MasterNodeNamePrefix'), '-mAS')]",
       "apiVersion": "2015-06-15",
       "tags": {
         "EAICODE": "10962"
@@ -83,14 +104,59 @@
       }
     },
     {
-      "comments": "#Nic for Node",
+      "comments": "# Worker Noded Availabiltiy Set",
+      "type": "Microsoft.Compute/availabilitySets",
+      "name": "[concat(parameters('WorkerNodeNamePrefix'), '-wAS')]",
+      "apiVersion": "2015-06-15",
+      "tags": {
+        "EAICODE": "10962"
+      },
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "platformFaultDomainCount": "3",
+        "platformUpdateDomainCount": "10"
+      }
+    },
+    {
+      "comments": "#Nics for Master Nodes",
       "apiVersion": "[variables('apiVersion')]",
       "type": "Microsoft.Network/networkInterfaces",
       "tags": {
-        "EAICODE": "0000"
+        "EAICODE": "10962"
       },
-      "name": "[concat(parameters('NodeName'), '-NIC')]",
+      "name": "[concat(parameters('MasterNodeNamePrefix'), padLeft(string(copyIndex(variables('MasterNodeStartIndex'))), variables('vmIndexWidth'), '0'), '-NIC1')]",
       "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "createMasterNodeNICs",
+        "count": "[parameters('NumberofMasterNodes')]"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "IPConfig",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "comments": "#Nics for Woker Nodes",
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "tags": {
+        "EAICODE": "10962"
+      },
+      "name": "[concat(parameters('WorkerNodeNamePrefix'), padLeft(string(copyIndex(variables('WorkerNodeStartIndex'))), variables('vmIndexWidth'), '0'), '-NIC1')]",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "createWorkerNICs",
+        "count": "[parameters('NumberofWorkerNodes')]"
+      },
       "properties": {
         "ipConfigurations": [
           {
@@ -111,67 +177,72 @@
       "tags": {
         "EAICODE": "10962"
       },
-      "name": "[parameters('NodeName')]",
+      "name": "[concat(parameters('MasterNodeNamePrefix'), '-', padLeft(string(copyIndex(variables('MasterNodeStartIndex'))), variables('vmindexwidth'), '0'))]",
       "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "CreateMasterNodes",
+        "count": "[parameters('NumberofMasterNodes')]"
+      },
       "dependsOn": [
-        "[parameters('AvailablitySet')]"
+        "createMasterNodeNICs",
+        "[concat('Microsoft.Compute/availabilitySets/', concat(parameters('MasterNodeNamePrefix'), '-mAS'))]"
       ],
       "properties": {
         "availabilitySet": {
-          "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('AvailablitySet'))]"
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', concat(parameters('MasterNodeNamePrefix'), '-mAS'))]"
         },
         "hardwareProfile": {
-          "vmSize": "[parameters('NodeVMSize')]"
+          "vmSize": "[parameters('MasterNodeVMSize')]"
         },
         "osProfile": {
-          "computerName": "[parameters('NodeName')]",
+          "computerName": "[concat(parameters('MasterNodeNamePrefix'), '-', padLeft(string(copyIndex(variables('MasterNodeStartIndex'))), variables('vmindexwidth'), '0'))]",
           "adminUsername": "[variables('adminUsername')]",
           "adminPassword": "[variables('adminPassword')]"
         },
         "storageProfile": {
           "dataDisks": [
             {
-              "name": "[concat(parameters('NodeName'),'-DataDisk1')]",
+              "name": "[concat(parameters('MasterNodeNamePrefix'),padleft(string(copyindex(variables('MasterNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-DataDisk1')]",
               "diskSizeGB": "128",
               "lun": 0,
               "vhd": {
-                "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('NodeName'),'-datadisk1', '.vhd')]"
+                "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('MasterNodeNamePrefix'),padleft(string(copyindex(variables('MasterNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-datadisk1', '.vhd')]"
               },
               "createOption": "Empty"
             },
             {
-              "name": "[concat(parameters('NodeName'),'-DataDisk2')]",
+              "name": "[concat(parameters('MasterNodeNamePrefix'),padleft(string(copyindex(variables('MasterNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-DataDisk2')]",
               "diskSizeGB": "128",
               "lun": 1,
               "vhd": {
-                "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('NodeName'),'-datadisk2', '.vhd')]"
+                "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('MasterNodeNamePrefix'),padleft(string(copyindex(variables('MasterNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-datadisk2', '.vhd')]"
               },
               "createOption": "Empty"
             },
             {
-              "name": "[concat(parameters('NodeName'),'-DataDisk3')]",
+              "name": "[concat(parameters('MasterNodeNamePrefix'),padleft(string(copyindex(variables('MasterNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-DataDisk3')]",
               "diskSizeGB": "128",
               "lun": 2,
               "vhd": {
-                "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('NodeName'),'-datadisk3', '.vhd')]"
+                "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('MasterNodeNamePrefix'),padleft(string(copyindex(variables('MasterNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-datadisk3', '.vhd')]"
               },
               "createOption": "Empty"
             },
             {
-              "name": "[concat(parameters('NodeName'),'-DataDisk4')]",
+              "name": "[concat(parameters('MasterNodeNamePrefix'),padleft(string(copyindex(variables('MasterNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-DataDisk4')]",
               "diskSizeGB": "128",
               "lun": 3,
               "vhd": {
-                "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('NodeName'),'-datadisk4', '.vhd')]"
+                "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('MasterNodeNamePrefix'),padleft(string(copyindex(variables('MasterNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-datadisk4', '.vhd')]"
               },
               "createOption": "Empty"
             }
           ],
           "osDisk": {
-            "name": "[concat(parameters('NodeName'),'-OSDisk')]",
+            "name": "[concat(parameters('MasterNodeNamePrefix'),padleft(string(copyindex(variables('MasterNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-OSDisk')]",
             "osType": "linux",
             "vhd": {
-              "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('NodeName'),'-osdisk', '.vhd')]"
+              "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('MasterNodeNamePrefix'),padleft(string(copyindex(variables('MasterNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-osdisk', '.vhd')]"
             },
             "image": {
               "uri": "[variables('userImageName')]"
@@ -183,26 +254,115 @@
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces/', concat(parameters('NodeName'), '-NIC'))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces/', concat(parameters('MasterNodeNamePrefix'), padLeft(string(copyIndex(variables('MasterNodeStartIndex'))), variables('vmIndexWidth'), '0'), '-NIC1'))]"
             }
           ]
         },
         "diagnosticsProfile": {
           "bootDiagnostics": {
             "enabled": "true",
-            "storageUri": "[reference(concat('Microsoft.Storage/storageAccounts/', 'modsquad'), variables('apiVersion')).primaryEndpoints.blob]"
+            "storageUri": "[reference(concat('Microsoft.Storage/storageAccounts/', parameters('vmImageStorageAccountName')), variables('apiVersion')).primaryEndpoints.blob]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "tags": {
+        "EAICODE": "10962"
+      },
+      "name": "[concat(parameters('WorkerNodeNamePrefix'), '-', padLeft(string(copyIndex(variables('WorkerNodeStartIndex'))), variables('vmindexwidth'), '0'))]",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "CreateWorkerNodes",
+        "count": "[parameters('NumberofWorkerNodes')]"
+      },
+      "dependsOn": [
+        "createMasterNodeNICs",
+        "[concat('Microsoft.Compute/availabilitySets/', concat(parameters('WorkerNodeNamePrefix'), '-wAS'))]"
+      ],
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', concat(parameters('WorkerNodeNamePrefix'), '-wAS'))]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('WorkerNodeVMSize')]"
+        },
+        "osProfile": {
+          "computerName": "[concat(parameters('WorkerNodeNamePrefix'), '-', padLeft(string(copyIndex(variables('WorkerNodeStartIndex'))), variables('vmindexwidth'), '0'))]",
+          "adminUsername": "[variables('adminUsername')]",
+          "adminPassword": "[variables('adminPassword')]"
+        },
+        "storageProfile": {
+          "dataDisks": [
+            {
+              "name": "[concat(parameters('WorkerNodeNamePrefix'),padleft(string(copyindex(variables('WorkerNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-DataDisk1')]",
+              "diskSizeGB": "128",
+              "lun": 0,
+              "vhd": {
+                "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('WorkerNodeNamePrefix'),padleft(string(copyindex(variables('WorkerNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-datadisk1', '.vhd')]"
+              },
+              "createOption": "Empty"
+            },
+            {
+              "name": "[concat(parameters('WorkerNodeNamePrefix'),padleft(string(copyindex(variables('WorkerNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-DataDisk2')]",
+              "diskSizeGB": "128",
+              "lun": 1,
+              "vhd": {
+                "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('WorkerNodeNamePrefix'),padleft(string(copyindex(variables('WorkerNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-datadisk2', '.vhd')]"
+              },
+              "createOption": "Empty"
+            },
+            {
+              "name": "[concat(parameters('WorkerNodeNamePrefix'),padleft(string(copyindex(variables('WorkerNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-DataDisk3')]",
+              "diskSizeGB": "128",
+              "lun": 2,
+              "vhd": {
+                "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('WorkerNodeNamePrefix'),padleft(string(copyindex(variables('WorkerNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-datadisk3', '.vhd')]"
+              },
+              "createOption": "Empty"
+            },
+            {
+              "name": "[concat(parameters('WorkerNodeNamePrefix'),padleft(string(copyindex(variables('WorkerNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-DataDisk4')]",
+              "diskSizeGB": "128",
+              "lun": 3,
+              "vhd": {
+                "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('WorkerNodeNamePrefix'),padleft(string(copyindex(variables('WorkerNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-datadisk4', '.vhd')]"
+              },
+              "createOption": "Empty"
+            }
+          ],
+          "osDisk": {
+            "name": "[concat(parameters('WorkerNodeNamePrefix'),padleft(string(copyindex(variables('WorkerNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-OSDisk')]",
+            "osType": "linux",
+            "vhd": {
+              "uri": "[concat('http://', parameters('vmImageStorageAccountName'), '.blob.core.windows.net/vhds/',parameters('WorkerNodeNamePrefix'),padleft(string(copyindex(variables('WorkerNodeStartIndex'))),variables('vmIndexWidth'),'0'),'-osdisk', '.vhd')]"
+            },
+            "image": {
+              "uri": "[variables('userImageName')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces/', concat(parameters('WorkerNodeNamePrefix'), padLeft(string(copyIndex(variables('WorkerNodeStartIndex'))), variables('vmIndexWidth'), '0'), '-NIC1'))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+            "storageUri": "[reference(concat('Microsoft.Storage/storageAccounts/', parameters('bootdiagStorageAccountName')), variables('apiVersion')).primaryEndpoints.blob]"
           }
         }
       }
     }
-     
     
   ],
   "outputs": {
-        "ipAddress": {
-        "value": "[reference(resourceId('Microsoft.Network/networkInterfaces',concat(parameters('NodeName'),'-NIC'))).ipConfigurations[0].properties.privateIPAddress]",
-        "type": "string"
-    }
-
   }
 }
