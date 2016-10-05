@@ -76,6 +76,8 @@
     "apiVersion": "2015-06-15",
     "vnetID": "[resourceId(parameters('VirtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('VirtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('SubnetName'))]",
+	"NumberofWorkerNodes": "[int(parameters('NumberofWorkerNodes'))]",
+	"NumberofMasterNodes": "[int(parameters('NumberofMasterNodes'))]",
     "MasterNodeStartIndex": 0,
     "WorkerNodeStartIndex": "[int(parameters('NumberofMasterNodes'))]",
     "vmIndexWidth": 2,
@@ -124,7 +126,7 @@
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "createMasterNodeNICs",
-        "count": "[int(parameters('NumberofMasterNodes'))]"
+        "count": "[variables('NumberofMasterNodes')]"
       },
       "properties": {
         "ipConfigurations": [
@@ -151,7 +153,7 @@
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "createWorkerNICs",
-        "count": "[int(parameters('NumberofWorkerNodes'))]"
+        "count": "[variables('NumberofWorkerNodes')]"
       },
       "properties": {
         "ipConfigurations": [
@@ -177,7 +179,7 @@
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "CreateMasterNodes",
-        "count": "[int(parameters('NumberofMasterNodes'))]"
+        "count": "[variables('NumberofMasterNodes')]"
       },
       "dependsOn": [
         "createMasterNodeNICs",
@@ -272,7 +274,7 @@
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "CreateWorkerNodes",
-        "count": "[int(parameters('NumberofWorkerNodes'))]"
+        "count": "[variables('NumberofWorkerNodes')]"
       },
       "dependsOn": [
         "createMasterNodeNICs",
