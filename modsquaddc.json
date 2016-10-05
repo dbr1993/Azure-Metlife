@@ -21,17 +21,13 @@
       }
     },
     "NumberofMasterNodes": {
-      "type": "int",
-      "minValue": 1,
-      "maxValue": 10,
+      "type": "string",
       "metadata": {
         "description": "This is the number of master nodes."
       }
     },
     "NumberofWorkerNodes": {
-      "type": "int",
-      "minValue": 1,
-      "maxValue": 10,
+      "type": "string",
       "metadata": {
         "description": "This is the number of worker nodes."
       }
