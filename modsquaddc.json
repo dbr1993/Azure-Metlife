@@ -77,7 +77,7 @@
     "vnetID": "[resourceId(parameters('VirtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('VirtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('SubnetName'))]",
     "MasterNodeStartIndex": 0,
-    "WorkerNodeStartIndex": "[parameters('NumberofMasterNodes')]",
+    "WorkerNodeStartIndex": "[int(parameters('NumberofMasterNodes'))]",
     "vmIndexWidth": 2,
     "adminUsername": "mladmin",
     "adminPassword": "xxxxxxxxxx",
@@ -151,7 +151,7 @@
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "createWorkerNICs",
-        "count": "[parameters('NumberofWorkerNodes')]"
+        "count": "[int(parameters('NumberofWorkerNodes'))]"
       },
       "properties": {
         "ipConfigurations": [
@@ -177,7 +177,7 @@
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "CreateMasterNodes",
-        "count": "[parameters('NumberofMasterNodes')]"
+        "count": "[int(parameters('NumberofMasterNodes'))]"
       },
       "dependsOn": [
         "createMasterNodeNICs",
