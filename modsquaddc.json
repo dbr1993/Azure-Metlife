@@ -124,7 +124,7 @@
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "createMasterNodeNICs",
-        "count": "[parameters('NumberofMasterNodes')]"
+        "count": "[int(parameters('NumberofMasterNodes'))]"
       },
       "properties": {
         "ipConfigurations": [
@@ -272,7 +272,7 @@
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "CreateWorkerNodes",
-        "count": "[parameters('NumberofWorkerNodes')]"
+        "count": "[int(parameters('NumberofWorkerNodes'))]"
       },
       "dependsOn": [
         "createMasterNodeNICs",
