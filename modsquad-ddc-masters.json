@@ -84,8 +84,8 @@
     "subnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('SubnetName'))]",
     "MasterNodeStartIndex": 0,
     "vmIndexWidth": 2,
-	"adminUsername": "parameters('adminUsername')",
-    "adminPassword": ""parameters('adminPassword')",",
+    "adminUsername": "parameters('adminUsername')",
+    "adminPassword": "parameters('adminPassword')",
     "userImageName": "https://modsquadprm.blob.core.windows.net/images/METRHEL72Docker.vhd",
     "osDiskVhdContainer": "https://modsquadprm.blob.core.windows.net/vhds/"
   },
