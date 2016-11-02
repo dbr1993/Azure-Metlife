@@ -53,9 +53,6 @@
     "vmImageStorageAccountName": {
       "type": "string"
     },
-    "bootdiagStorageAccountName": {
-      "type": "string"
-    },
     "adminUsername": {
       "type": "string"
     },
