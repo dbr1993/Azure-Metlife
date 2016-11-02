@@ -5,31 +5,16 @@
     "MasterNodeVMSize": {
       "type": "string"
     },
-    "WorkerNodeVMSize": {
-      "type": "string"
-    },
     "MasterNodeNamePrefix": {
       "type": "string",
       "metadata": {
         "description": "Name prefix for the Master Nodes."
       }
     },
-    "WorkerNodeNamePrefix": {
-      "type": "string",
-      "metadata": {
-        "description": "Name prefix for the Worker Nodes."
-      }
-    },
     "NumberofMasterNodes": {
       "type": "string",
       "metadata": {
         "description": "This is the number of master nodes."
-      }
-    },
-    "NumberofWorkerNodes": {
-      "type": "string",
-      "metadata": {
-        "description": "This is the number of worker nodes."
       }
     },
     "VirtualNetworkName": {
@@ -71,10 +56,10 @@
     "bootdiagStorageAccountName": {
       "type": "string"
     },
-	"adminUsername": {
+    "adminUsername": {
       "type": "string"
     },
-	"adminPassword": {
+    "adminPassword": {
       "type": "string"
     }
   },
@@ -84,8 +69,8 @@
     "subnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('SubnetName'))]",
     "MasterNodeStartIndex": 0,
     "vmIndexWidth": 2,
-    "adminUsername": "parameters('adminUsername')",
-    "adminPassword": "parameters('adminPassword')",
+    "adminUsername": "[parameters('adminUsername')]",
+    "adminPassword": "[parameters('adminPassword')]",
     "userImageName": "https://modsquadprm.blob.core.windows.net/images/METRHEL72Docker.vhd",
     "osDiskVhdContainer": "https://modsquadprm.blob.core.windows.net/vhds/"
   },
