@@ -65,6 +65,7 @@
     "vnetID": "[resourceId(parameters('VirtualNetworkResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('VirtualNetworkName'))]",
     "subnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('SubnetName'))]",
     "MasterNodeStartIndex": 0,
+    "NumberofMasterNodes": "[int(parameters('NumberofMasterNodes'))]",
     "vmIndexWidth": 2,
     "adminUsername": "[parameters('adminUsername')]",
     "adminPassword": "[parameters('adminPassword')]",
