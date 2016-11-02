@@ -1,8 +1,11 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
-  "parameters": {
+    "parameters": {
     "MasterNodeVMSize": {
+      "type": "string"
+    },
+    "WorkerNodeVMSize": {
       "type": "string"
     },
     "MasterNodeNamePrefix": {
@@ -11,13 +14,25 @@
         "description": "Name prefix for the Master Nodes."
       }
     },
+    "WorkerNodeNamePrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "Name prefix for the Worker Nodes."
+      }
+    },
     "NumberofMasterNodes": {
       "type": "string",
       "metadata": {
         "description": "This is the number of master nodes."
       }
     },
-	"VirtualNetworkName": {
+    "NumberofWorkerNodes": {
+      "type": "string",
+      "metadata": {
+        "description": "This is the number of worker nodes."
+      }
+    },
+    "VirtualNetworkName": {
       "type": "string",
       "metadata": {
         "description": "Name of the existing VNet"
