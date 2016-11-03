@@ -70,6 +70,12 @@
     },
     "bootdiagStorageAccountName": {
       "type": "string"
+    },
+    "adminUsername": {
+      "type": "string"
+    },
+    "adminPassword": {
+      "type": "string"
     }
   },
   "variables": {
@@ -81,8 +87,8 @@
     "MasterNodeStartIndex": 0,
     "WorkerNodeStartIndex": "[int(parameters('NumberofMasterNodes'))]",
     "vmIndexWidth": 2,
-    "adminUsername": "mladmin",
-    "adminPassword": "xxxxxxxxxx",
+    "adminUsername": "[parameters('adminUsername')]",
+    "adminPassword": "[parameters('adminPassword')]",
     "userImageName": "https://modsquadprm.blob.core.windows.net/images/METRHEL72Docker.vhd",
     "osDiskVhdContainer": "https://modsquadprm.blob.core.windows.net/vhds/"
   },
