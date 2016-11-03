@@ -4,11 +4,6 @@
   "parameters": {
     "NodeVMSize": {
       "type": "string",
-      "allowedValues": [
-        "Standard_DS2_v2",
-        "Standard_DS12_v2",
-        "Standard_DS13_v2"
-      ]
     },
     "NodeName": {
       "type": "string"
@@ -55,12 +50,6 @@
     },
     "OSVersion": {
       "type": "string",
-      "defaultValue": "7.2",
-      "allowedValues": [
-        "7.2",
-        "6.8",
-        "6.7"
-      ],
       "metadata": {
         "description": "The OS version for the VM. This will pick the latest available image of this given OS version."
       }
