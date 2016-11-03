@@ -45,13 +45,11 @@
     },
     "PlatformFaultDomainCount":{
       "type": "string",
-      "defaultValue": 3,
-      "maxValue": 5  
+      "defaultValue": "3"
     },
     "PlatformUpdateDomainCount":{
       "type": "string",
-      "defaultValue": "9",
-      "maxValue": 20
+      "defaultValue": "9"
     },
     "OSVersion": {
       "type": "string",
@@ -82,7 +80,6 @@
     },
     "numDataDisks": {
       "type": "string",
-      "maxValue": 5,
       "metadata": {
         "description": "This parameter allows the user to select the number of disks they want"
       }
