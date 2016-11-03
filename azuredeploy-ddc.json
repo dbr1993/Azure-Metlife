@@ -72,10 +72,10 @@
         "PostPostwSplunk"
       ]
     },
-	"adminUsername": {
+    "adminUsername": {
       "type": "string"
     },
-	"adminPassword": {
+    "adminPassword": {
       "type": "string"
     },
     "numDataDisks": {
