@@ -113,7 +113,6 @@
           "diskSizeGB": "[variables('dataDiskSize')]",
           "lun": 0,
           "vhd": {
-            //"uri": "[concat(reference(concat('Microsoft.Storage/storageAccounts/', variables('datadiskStorageAccount')), variables('apiVersion')).primaryEndpoints.blob, variables('vmStorageAccountContainerName'),'/',variables('dataDiskName'),'0.vhd')]"
             "uri": "[concat('http://', parameters('storageAccountName'),'.blob.core.windows.net/',  variables('vmStorageAccountContainerName'),'/',variables('dataDiskName'),'0.vhd')]"
           },
           "createOption": "Empty"
@@ -123,8 +122,7 @@
           "diskSizeGB": "[variables('dataDiskSize')]",
           "lun": 1,
           "vhd": {
-            "uri": "[concat('http://', parameters('storageAccountName'),'.blob.core.windows.net/',  variables('vmStorageAccountContainerName'),'/',variables('dataDiskName'),'1.vhd')]" 
-            //"[concat(reference(concat('Microsoft.Storage/storageAccounts/', variables('datadiskStorageAccount')), variables('apiVersion')).primaryEndpoints.blob, variables('vmStorageAccountContainerName'),'/',variables('dataDiskName'),'1.vhd')]"
+            "uri": "[concat('http://', parameters('storageAccountName'),'.blob.core.windows.net/',  variables('vmStorageAccountContainerName'),'/',variables('dataDiskName'),'1.vhd')]"
           },
           "createOption": "Empty"
         },
@@ -134,7 +132,6 @@
           "lun": 2,
           "vhd": {
             "uri": "[concat('http://', parameters('storageAccountName'),'.blob.core.windows.net/',  variables('vmStorageAccountContainerName'),'/',variables('dataDiskName'),'2.vhd')]" 
-            //"[concat(reference(concat('Microsoft.Storage/storageAccounts/', variables('datadiskStorageAccount')), variables('apiVersion')).primaryEndpoints.blob, variables('vmStorageAccountContainerName'),'/',variables('dataDiskName'),'2.vhd')]"
           },
           "createOption": "Empty"
         },
@@ -145,7 +142,6 @@
           "caching": "ReadWrite",
           "vhd": {
             "uri": "[concat('http://', parameters('storageAccountName'),'.blob.core.windows.net/',  variables('vmStorageAccountContainerName'),'/',variables('dataDiskName'),'3.vhd')]" 
-            //"[concat(reference(concat('Microsoft.Storage/storageAccounts/', variables('datadiskStorageAccount')), variables('apiVersion')).primaryEndpoints.blob, variables('vmStorageAccountContainerName'),'/',variables('dataDiskName'),'3.vhd')]"
           },
           "createOption": "Empty"
         }
