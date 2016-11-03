@@ -1,9 +1,14 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.0.0",
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
   "parameters": {
     "NodeVMSize": {
       "type": "string",
+      "allowedValues": [
+        "Standard_DS2_v2",
+        "Standard_DS12_v2",
+        "Standard_DS13_v2"
+      ]
     },
     "NodeName": {
       "type": "string"
@@ -50,6 +55,12 @@
     },
     "OSVersion": {
       "type": "string",
+      "defaultValue": "7.2",
+      "allowedValues": [
+        "7.2",
+        "6.8",
+        "6.7"
+      ],
       "metadata": {
         "description": "The OS version for the VM. This will pick the latest available image of this given OS version."
       }
@@ -63,10 +74,10 @@
         "PostPostwSplunk"
       ]
     },
-    "adminUsername": {
+	"adminUsername": {
       "type": "string"
     },
-    "adminPassword": {
+	"adminPassword": {
       "type": "string"
     },
     "numDataDisks": {
