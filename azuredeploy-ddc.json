@@ -174,9 +174,6 @@
       },
       "name": "[parameters('AvailablitySet')]",
       "apiVersion": "2015-06-15",
-      "tags": {
-        "EAICODE": "00000"
-      },
       "location": "[resourceGroup().location]",
       "properties": {
         "platformFaultDomainCount": "[parameters('PlatformFaultDomainCount')]",
