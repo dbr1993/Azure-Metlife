@@ -44,12 +44,12 @@
       "type": "string"
     },
     "PlatformFaultDomainCount":{
-      "type": "int",
+      "type": "string",
       "defaultValue": 3,
       "maxValue": 5  
     },
     "PlatformUpdateDomainCount":{
-      "type": "int",
+      "type": "string",
       "defaultValue": "9",
       "maxValue": 20
     },
@@ -81,7 +81,7 @@
       "type": "string"
     },
     "numDataDisks": {
-      "type": "int",
+      "type": "string",
       "maxValue": 5,
       "metadata": {
         "description": "This parameter allows the user to select the number of disks they want"
@@ -176,8 +176,8 @@
       "apiVersion": "2015-06-15",
       "location": "[resourceGroup().location]",
       "properties": {
-        "platformFaultDomainCount": "[parameters('PlatformFaultDomainCount')]",
-        "platformUpdateDomainCount": "[parameters('PlatformUpdateDomainCount')]"
+        "platformFaultDomainCount": "[int(parameters('PlatformFaultDomainCount'))]",
+        "platformUpdateDomainCount": "[int(parameters('PlatformUpdateDomainCount'))]"
       }
     },
     {
@@ -254,7 +254,7 @@
             "caching": "ReadWrite",
             "createOption": "FromImage"
           },
-         "dataDisks": "[take(variables('diskArray'),parameters('numDataDisks'))]"
+         "dataDisks": "[take(variables('diskArray'),int(parameters('numDataDisks')))]"
         },
         "networkProfile": {
           "networkInterfaces": [
