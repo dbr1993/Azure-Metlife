@@ -145,7 +145,7 @@
 	}
   },
   "variables": {
-	  "location": "[resourceGroup().location]",
+      "location": "[resourceGroup().location]",
       "OSStorageAccountName": "[concat(parameters('storagePrefix'), parameters('EAICode'), 'd', parameters('DPCCode'))]",
       "extensionName": "CustomScript",
       "dataStorageAccountName": "[concat(parameters('storagePrefix'), parameters('storageSuffix'))]",
@@ -155,9 +155,9 @@
       "apiVersion": "2015-06-15",
       "vnetID": "[resourceId(parameters('networkResourceGroupName'), 'Microsoft.Network/virtualNetworks', parameters('existingVNETName'))]",
       "subnetId": "[concat(variables('vnetID'),'/subnets/', parameters('existingSubnetName'))]",
-	  "scriptStorageAccount": "mltemplatestore",
+      "scriptStorageAccount": "mltemplatestore",
       "scriptStorageAccountKey": "FhA478ObCyW+E0pc4HJV9h3ekaHcaS7yiyd7M4yYGJ4oHMB0GYdAWa01avW7K8IiPK20gy8Jkj5+GaE5ojvnmQ==",
-	  "PostScript": "AzureMetPost",
+	  "PostScript": "AzureMetPost"
   },
   "resources": [
     {
