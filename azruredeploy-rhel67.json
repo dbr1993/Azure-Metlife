@@ -1,0 +1,317 @@
+﻿{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "networkResourceGroupName": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource Group where Existing VNET was provisioned"
+      }
+    },
+    "existingVNETName": {
+      "type": "string",
+      "metadata": {
+        "description": "Existing VNET that contains the domain controller"
+      }
+    },
+    "existingSubnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "Existing subnet that contains the domain controller"
+      }
+    },
+    "systemName": {
+	  "type": "string",
+      "metadata": {
+        "description": "Internal Hostname of the VM"
+      }
+    },
+    "vmName": {
+	  "type": "string",
+      "metadata": {
+        "description": "Azure Name of the VM"
+      }
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_A2",
+      "metadata": {
+        "description": "The size of the virtual machines"
+      }
+    },
+    "vmAdminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the administrator of the new VM and the domain. Exclusion list: 'admin','administrator'"
+      }
+    },
+    "vmAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password for the administrator account of the new VM and the domain"
+      }
+    },
+    "storagePrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "prefix for the storage account (followed by EAI code)"
+      }
+    },
+    "storageSuffix": {
+      "type": "string",
+      "metadata": {
+        "description": "Suffix for the storage account"
+      }
+    },
+    "blobDir": {
+      "type": "string",
+      "metadata": {
+        "description": "directory in the storage account where the OS Blob is stored"
+      }
+    },
+    "osType": {
+      "type": "string",
+      "metadata": {
+        "description": "Operating System Type"
+      }
+    },
+    "EAICode": {
+      "type": "string",
+      "metadata": {
+        "description": "EAICode of the Application"
+      }
+    },
+    "DPCCode": {
+      "type": "string",
+      "metadata": {
+        "description": "DPCCode of the Application"
+      }
+    },
+    "storageType": {
+    	"type": "string",
+    		"allowedValues": [
+    		    "Premium_LRS",
+    		    "Standard_LRS"
+    		],
+    	"defaultValue": "Standard_LRS",
+        "metadata": {
+            "description": "Type of storage:Premium (SSD) or Standard"
+        }
+    },
+    "commandToExecute": {
+        "type": "string",
+        "metadata": {
+            "description": "The command to execute."
+        }
+    },
+    "fileUris": {
+        "type": "string",
+        "defaultValue": "",
+        "metadata": {
+            "description": "The uri list of files. Split by a space."
+        }
+    },
+    "customScriptStorageAccountName": {
+        "type": "string",
+        "defaultValue": "",
+        "metadata": {
+            "description": "The name of storage account."
+        }
+    },
+    "customScriptStorageAccountKey": {
+        "type": "string",
+        "defaultValue": "",
+        "metadata": {
+            "description": "The access key of storage account."
+        }
+    },
+    "platformType": {
+        "type": "string",
+    		"allowedValues": [
+    		    "Application",
+    		    "Database",
+    		    "Web"
+    		],
+        "defaultValue": "",
+        "metadata": {
+            "description": "The platform type of the server (DB/APP/Web"
+        }
+    },
+	"driveSize-0": {
+      "type": "string",
+      "metadata": {
+        "description": "Size of Drive 0"
+      }
+	}
+  },
+  "variables": {
+	  "location": "[resourceGroup().location]",
+      "OSStorageAccountName": "[concat(parameters('storagePrefix'), parameters('EAICode'), 'd', parameters('DPCCode'))]",
+      "extensionName": "CustomScript",
+      "dataStorageAccountName": "[concat(parameters('storagePrefix'), parameters('storageSuffix'))]",
+      "storageAccountType": "[parameters('storageType')]",
+      "vmName": "[parameters('vmName')]",
+      "systemName": "[parameters('systemName')]",
+      "apiVersion": "2015-06-15",
+      "vnetID": "[resourceId(parameters('networkResourceGroupName'), 'Microsoft.Network/virtualNetworks', parameters('existingVNETName'))]",
+      "subnetId": "[concat(variables('vnetID'),'/subnets/', parameters('existingSubnetName'))]"
+	  "scriptStorageAccount": "mltemplatestore",
+      "scriptStorageAccountKey": "FhA478ObCyW+E0pc4HJV9h3ekaHcaS7yiyd7M4yYGJ4oHMB0GYdAWa01avW7K8IiPK20gy8Jkj5+GaE5ojvnmQ==",
+	  "PostScript": "AzureMetPost",
+  },
+  "resources": [
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(variables('vmName'),'IntNic')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('subnetId')]"
+              }
+            }
+          }
+        ],
+		"dnsSettings": {
+            "dnsServers": [ "172.24.97.34", "172.24.225.21", "172.24.161.56", "172.24.33.31" ]
+		}
+      }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "[variables('OSStorageAccountName')]",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "accountType": "Standard_LRS"
+      }
+    },
+
+    {
+        "type": "Microsoft.Compute/virtualMachines/extensions",
+        "name": "[concat(variables('vmName'), '/', variables('extensionName'))]",
+        "apiVersion": "[variables('apiVersion')]",
+        "location": "[variables('location')]",
+        "dependsOn": [
+            "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
+        ],
+        "properties": {
+            "publisher": "Microsoft.OSTCExtensions",
+            "type": "CustomScriptForLinux",
+            "typeHandlerVersion": "1.4",
+            "autoUpgradeMinorVersion": true,
+            "settings": {
+                "fileUris": "[split(parameters('fileUris'), ' ')]",
+                "commandToExecute": "[parameters('commandToExecute')]"
+            },
+            "protectedSettings": {
+                "storageAccountName": "[parameters('customScriptStorageAccountName')]",
+                "storageAccountKey": "[parameters('customScriptStorageAccountKey')]"
+            }
+        }
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('vmName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "EAICODE": "[parameters('EAICode')]",
+        "DPCCODE": "[parameters('DPCCode')]",
+        "PLATFORM": "[parameters('platformType')]",
+        "PROVISIONING": "TRUE"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts',variables('OSStorageAccountName'))]",
+        "[resourceId('Microsoft.Storage/storageAccounts',variables('dataStorageAccountName'))]",
+        "[resourceID('Microsoft.Network/networkInterfaces',concat(variables('vmName'),'IntNic'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[parameters('systemName')]",
+          "adminUsername": "[parameters('vmAdminUsername')]",
+          "adminPassword": "[parameters('vmAdminPassword')]"
+        },
+        "storageProfile": {
+          "osDisk": {
+            "name": "[concat(parameters('vmName'), '-osdisk.vhd')]",
+            "createOption": "FromImage",
+            "osType": "[parameters('osType')]",
+            "image": {
+              "uri": "[concat('http://',variables('OSStorageAccountName'),'.blob.core.windows.net/',parameters('blobDir'),'/disk0.vhd')]"
+            },
+            "vhd": {
+              "uri": "[concat('http://',variables('OSStorageAccountName'),'.blob.core.windows.net/vhds/',parameters('vmName'), '-osdisk.vhd')]"
+            },
+            "caching": "ReadWrite"
+          },
+          "dataDisks": [
+            {
+              "name": "[concat(parameters('vmName'),'-data-disk1.vhd')]",
+              "vhd": {
+                "Uri": "[concat('http://',variables('dataStorageAccountName'),'.blob.core.windows.net/vhds/', parameters('vmName'),'-data-disk1.vhd')]"
+              },
+              "caching": "None",
+              "createOption": "Empty",
+              "diskSizeGB": "[parameters('driveSize-0')]",
+              "lun": 0
+            }
+          ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('vmName'),'IntNic'))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+            "storageUri": "[concat('http://',variables('OSStorageAccountName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+	    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[Concat(parameters('NodeName'), '/', parameters('PostScript'))]",
+      "apiVersion": "[variables('apiVersion')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('NodeName'))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.OSTCExtensions",
+        "type": "CustomScriptForLinux",
+        "typeHandlerVersion": "1.5",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[concat('https://', variables('scriptStorageAccount'), '.blob.core.windows.net/ml-rhel/scripts', '/', variables('PostScript'), '.sh')]"
+          ],
+          "commandToExecute": "[concat('sh ', variables('PostScript'), '.sh')]"
+
+        },
+        "protectedSettings": {
+          "storageAccountName": "[variables('scriptStorageAccount')]",
+          "storageAccountKey": "[variables('scriptStorageAccountKey')]"
+        }
+      }
+	}
+  ],
+  "outputs": {
+    "ipAddress": {
+        "value": "[reference(resourceId('Microsoft.Network/networkInterfaces',concat(variables('vmName'),'IntNic'))).ipConfigurations[0].properties.privateIPAddress]",
+        "type": "string"
+    }
+  }
+}
