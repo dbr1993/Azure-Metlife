@@ -113,8 +113,8 @@
       "metadata": {
         "description": "The OS version for the VM. This will pick the latest available image of this given OS version."
       }
-    }
-	"scriptStorageAccountKey": {
+    },
+    "scriptStorageAccountKey": {
       "type": "string",
       "metadata": {
         "description": "The storage account key for the scripts account"
