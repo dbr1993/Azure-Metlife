@@ -1038,7 +1038,6 @@
         },
         "protectedSettings": {
           "storageAccountName": "[variables('scriptStorageAccount')]",
-          "storageAccountKey": "[variables('scriptStorageAccountKey')]"
         }
       }
     }  
