@@ -143,7 +143,7 @@
     "adminUsername": "mladmin",
     "adminPassword": "MetLife0001!",
     "scriptStorageAccount": "mltemplatestore",
-    "scriptStorageAccountKey": "FhA478ObCyW+E0pc4HJV9h3ekaHcaS7yiyd7M4yYGJ4oHMB0GYdAWa01avW7K8IiPK20gy8Jkj5+GaE5ojvnmQ==",
+    "scriptStorageAccountKey": "abc",
   },
   "resources": [
     {
