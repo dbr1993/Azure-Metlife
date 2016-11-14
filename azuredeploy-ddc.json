@@ -1,9 +1,9 @@
-﻿{
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
   "parameters": {
     "MasterNodeNames": {
-      "type": "array",
+      "type": "string",
       "metadata": {
         "description": "List of Master Node Names"
       }
@@ -17,7 +17,7 @@
       ]
     },
     "DTRNodeNames": {
-      "type": "array",
+      "type": "string",
       "metadata": {
         "description": "List of DTR Node Names"
       }
@@ -31,7 +31,7 @@
       ]
     },
     "WorkerNodeNames": {
-      "type": "array",
+      "type": "string",
      "metadata": {
         "description": "List of Default Worker Node Names"
       }
@@ -45,7 +45,7 @@
       ]
     },
     "WorkerNodeMongoNames": {
-      "type": "array",
+      "type": "string",
       "metadata": {
         "description": "List of Mongo Worker Node Names"
       }
@@ -59,7 +59,7 @@
       ]
     },
     "WorkerNodeSplunkNames": {
-      "type": "array",
+      "type": "string",
       "metadata": {
         "description": "List of Splunk Worker Node Names"
       }
@@ -116,11 +116,16 @@
     }
   },
   "variables": {
-    "numMasterNodes": "[length(parameters('MasterNodeNames'))]",
-    "numDTRNodes": "[length(parameters('DTRNodeNames'))]",
-    "numWorkerNodes": "[length(parameters('WorkerNodeNames'))]",
-    "numWorkerNodeswMongo": "[length(parameters('WorkerNodeMongoNames'))]",
-    "numWorkerNodeswSplunk": "[length(parameters('WorkerNodeSplunkNames'))]",
+    "masterNodeArr": "[split(parameters('MasterNodeNames'),',')]"
+    "numMasterNodes": "[length(parameters('masterNodeArr'))]",
+	"dtrNodeArr": "[split(parameters('DTRNodeNames'),',')]"
+    "numDTRNodes": "[length(parameters('dtrNodeArr'))]",
+	"workerNodeArr": "[split(parameters('WorkerNodeNames'),',')]"
+    "numWorkerNodes": "[length(parameters('workerNodeArr'))]",
+	"mongoNodeArr": "[split(parameters('MongoNodeNames'),',')]"
+    "numWorkerNodeswMongo": "[length(parameters('mongoNodeArr'))]",
+	"splunkNodeArr": "[split(parameters('SplunkNodeNames'),',')]"
+    "numWorkerNodeswSplunk": "[length(parameters('splunkNodeArr'))]",
     "masterNodeStorageAccountName": "[toLower(concat(parameters('EAICODE'), 'docker', parameters('Environment'), 'master01'))]",
     "workerNodeStorageAccountName": "[toLower(concat(parameters('EAICODE'), 'docker', parameters('Environment'), 'worker01'))]",
     "DiagStorageAccountName": "[toLower(concat(parameters('EAICODE'), 'docker', parameters('Environment'), 'diag01'))]",
@@ -1039,7 +1044,7 @@
         "protectedSettings": {
           "storageAccountName": "[variables('scriptStorageAccount')]",
           "storageAccountKey": "[variables('scriptStorageAccountKey')]"
-			
+
         }
 
       }
@@ -1048,9 +1053,6 @@
     
   ],
   "outputs": {
-    "ipAddress": {
-        "value": "[reference(resourceId('Microsoft.Network/networkInterfaces',concat(parameters('NodeName'),'-NIC'))).ipConfigurations[0].properties.privateIPAddress]",
-        "type": "string"
-    }
+    
   }
 }
