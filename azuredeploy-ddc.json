@@ -116,16 +116,11 @@
     }
   },
   "variables": {
-    "masterNodeArr": "[split(parameters('MasterNodeNames'),',')]"
-    "numMasterNodes": "[length(parameters('masterNodeArr'))]",
-	"dtrNodeArr": "[split(parameters('DTRNodeNames'),',')]"
-    "numDTRNodes": "[length(parameters('dtrNodeArr'))]",
-	"workerNodeArr": "[split(parameters('WorkerNodeNames'),',')]"
-    "numWorkerNodes": "[length(parameters('workerNodeArr'))]",
-	"mongoNodeArr": "[split(parameters('MongoNodeNames'),',')]"
-    "numWorkerNodeswMongo": "[length(parameters('mongoNodeArr'))]",
-	"splunkNodeArr": "[split(parameters('SplunkNodeNames'),',')]"
-    "numWorkerNodeswSplunk": "[length(parameters('splunkNodeArr'))]",
+    "numMasterNodes": "[length(split(parameters('MasterNodeNames')),',')]",
+    "numDTRNodes": "[length(split(parameters('DTRNodeNames')),',')]",
+    "numWorkerNodes": "[length(split(parameters('WorkerNodeNames')),',')]",
+    "numWorkerNodeswMongo": "[length(split(parameters('WorkerNodeMongoNames')),',')]",
+    "numWorkerNodeswSplunk": "[length(split(parameters('WorkerNodeSplunkNames')),',')]",
     "masterNodeStorageAccountName": "[toLower(concat(parameters('EAICODE'), 'docker', parameters('Environment'), 'master01'))]",
     "workerNodeStorageAccountName": "[toLower(concat(parameters('EAICODE'), 'docker', parameters('Environment'), 'worker01'))]",
     "DiagStorageAccountName": "[toLower(concat(parameters('EAICODE'), 'docker', parameters('Environment'), 'diag01'))]",
@@ -1052,7 +1047,10 @@
     
     
   ],
-  "outputs": {
-    
+  "outputs": {    
+        "ipAddress": {
+        "value": "[reference(resourceId('Microsoft.Network/networkInterfaces',concat(parameters('NodeName'),'-NIC'))).ipConfigurations[0].properties.privateIPAddress]",
+        "type": "string"
+    }
   }
 }
