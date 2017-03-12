@@ -149,7 +149,7 @@
   ],
     "outputs": {
         "vmName": {
-        "value": "parameters('vmName')",
+        "value": "[parameters('vmName')]",
         "type": "string"
     },  
     "ipAddress": {
