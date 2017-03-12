@@ -148,9 +148,10 @@
     }
   ],
     "outputs": {
-    "vmName": {
-        "value": "[parameters('vmName')]",
-        "type": "string"},
+        "vmName": {
+        "value": "parameters('vmName')",
+        "type": "string"
+    },  
     "ipAddress": {
         "value": "[reference(resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmName'),'IntNic'))).ipConfigurations[0].properties.privateIPAddress]",
         "type": "string"
